@@ -17,6 +17,7 @@ import fetchPrimaryShop from "staticUtils/shop/fetchPrimaryShop";
 import fetchAllTags from "staticUtils/tags/fetchAllTags";
 import fetchTag from "staticUtils/tag/fetchTag";
 import fetchTranslations from "staticUtils/translations/fetchTranslations";
+import { capitalize } from "lodash";
 
 class TagGridPage extends Component {
   static propTypes = {
@@ -28,24 +29,24 @@ class TagGridPage extends Component {
     routingStore: PropTypes.shape({
       query: PropTypes.shape({
         limit: PropTypes.string,
-        sortby: PropTypes.string
+        sortby: PropTypes.string,
       }),
       setSearch: PropTypes.func.isRequired,
-      tag: SharedPropTypes.tag
+      tag: SharedPropTypes.tag,
     }),
     shop: PropTypes.shape({
       currency: PropTypes.shape({
-        code: PropTypes.string.isRequired
+        code: PropTypes.string.isRequired,
       }),
-      description: PropTypes.string
+      description: PropTypes.string,
     }),
     tag: SharedPropTypes.tag,
     uiStore: PropTypes.shape({
       pageSize: PropTypes.number.isRequired,
       setPageSize: PropTypes.func.isRequired,
       setSortBy: PropTypes.func.isRequired,
-      sortBy: PropTypes.string.isRequired
-    })
+      sortBy: PropTypes.string.isRequired,
+    }),
   };
 
   static getDerivedStateFromProps(props) {
@@ -54,7 +55,7 @@ class TagGridPage extends Component {
       routingStore.setTagId(tag._id);
       routingStore.setSearch({
         before: null,
-        after: null
+        after: null,
       });
     }
 
@@ -81,7 +82,7 @@ class TagGridPage extends Component {
     metafields.forEach((field) => {
       if (field.namespace && field.namespace === "metatag") {
         const metatag = {
-          content: field.value
+          content: field.value,
         };
         metatag[field.scope] = field.key;
         metatags.push(metatag);
@@ -104,18 +105,36 @@ class TagGridPage extends Component {
       routingStore,
       shop,
       tag,
-      uiStore
+      uiStore,
     } = this.props;
-    const pageSize = routingStore.query && routingStore.query.limit ? parseInt(routingStore.query.limit, 10) : uiStore.pageSize;
-    const sortBy = routingStore.query && routingStore.query.sortby ? routingStore.query.sortby : uiStore.sortBy;
+
+    const pageSize =
+      routingStore.query && routingStore.query.limit
+        ? parseInt(routingStore.query.limit, 10)
+        : uiStore.pageSize;
+    const sortBy =
+      routingStore.query && routingStore.query.sortby
+        ? routingStore.query.sortby
+        : uiStore.sortBy;
+
+    let queryStrings = routingStore.query;
+    let searchTitle = "";
+    delete queryStrings["slug"];
+    delete queryStrings["lang"];
+    for (let key in queryStrings) {
+      if (queryStrings[key] && queryStrings[key] != "") {
+        if (searchTitle == "") {
+          searchTitle = capitalize(queryStrings[key]);
+        } else {
+          searchTitle = `${searchTitle}, ${capitalize(queryStrings[key])}`;
+        }
+      }
+    }
 
     if (!tag && !shop) {
       return (
         <Layout shop={shop}>
-          <ProductGridEmptyMessage
-            actionMessage="Go Home"
-            resetLink="/"
-          />
+          <ProductGridEmptyMessage actionMessage="Go Home" resetLink="/" />
         </Layout>
       );
     }
@@ -123,18 +142,16 @@ class TagGridPage extends Component {
     return (
       <Layout shop={shop}>
         <Helmet
-          title={`${tag && tag.name} | ${shop && shop.name}`}
+          title={`${searchTitle} | ${shop && shop.name}`}
           meta={
-            tag && tag.metafields && tag.metafields.length > 0 ?
-              this.renderHeaderMetatags(tag.metafields)
-              :
-              [{ name: "description", content: shop && shop.description }]
+            tag && tag.metafields && tag.metafields.length > 0
+              ? this.renderHeaderMetatags(tag.metafields)
+              : [{ name: "description", content: shop && shop.description }]
           }
         />
-        <Breadcrumbs isTagGrid tagId={routingStore.tagId} />
-        {
-          tag && tag.displayTitle && <ProductGridTitle displayTitle={tag.displayTitle} />
-        }
+        {/* <Breadcrumbs isTagGrid tagId={routingStore.tagId} /> routingStore.tagId */}
+
+        {searchTitle && <ProductGridTitle displayTitle={searchTitle} />}
         <ProductGridHero tag={tag} />
         <ProductGrid
           catalogItems={catalogItems}
@@ -167,22 +184,22 @@ export async function getStaticProps({ params: { lang, slug } }) {
         shop: null,
         translations: null,
         fetchAllTags: null,
-        tag: null
+        tag: null,
       },
       // eslint-disable-next-line camelcase
-      unstable_revalidate: 1 // Revalidate immediately
+      unstable_revalidate: 1, // Revalidate immediately
     };
   }
 
   return {
     props: {
       ...primaryShop,
-      ...await fetchTranslations(lang, ["common"]),
-      ...await fetchAllTags(lang),
-      ...await fetchTag(slug, lang)
+      ...(await fetchTranslations(lang, ["common"])),
+      ...(await fetchAllTags(slug, lang)),
+      ...(await fetchTag(slug, lang)),
     },
     // eslint-disable-next-line camelcase
-    unstable_revalidate: 120 // Revalidate each two minutes
+    unstable_revalidate: 120, // Revalidate each two minutes
   };
 }
 
@@ -194,8 +211,10 @@ export async function getStaticProps({ params: { lang, slug } }) {
 export async function getStaticPaths() {
   return {
     paths: locales.map((locale) => ({ params: { lang: locale, slug: "-" } })),
-    fallback: true
+    fallback: true,
   };
 }
 
-export default withApollo()(withCatalogItems(inject("routingStore", "uiStore")(TagGridPage)));
+export default withApollo()(
+  withCatalogItems(inject("routingStore", "uiStore")(TagGridPage))
+);

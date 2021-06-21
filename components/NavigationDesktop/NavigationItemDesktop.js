@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react";
 import PropTypes from "prop-types";
 import inject from "hocs/inject";
 import classNames from "classnames";
-import Button from "@material-ui/core/Button";
+import { Button, TextField, Typography, Paper } from "@material-ui/core";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import ListItemText from "@material-ui/core/ListItemText";
@@ -21,10 +21,10 @@ const styles = (theme) => ({
     left: "0!important",
     maxWidth: "100vw",
     padding: theme.spacing(2),
-    width: "100vw"
+    width: "100vw",
   },
   grid: {
-    width: "100vw"
+    width: "100vw",
   },
   navigationShopAllLink: {
     display: "flex",
@@ -32,27 +32,31 @@ const styles = (theme) => ({
     fontSize: "14px",
     marginTop: theme.spacing(6),
     marginBottom: theme.spacing(2),
-    fontFamily: theme.typography.fontFamily
+    fontFamily: theme.typography.fontFamily,
   },
   navigationShopAllLinkIcon: {
-    fontSize: "12px"
+    fontSize: "12px",
   },
   primaryNavItem: {
-    textTransform: "capitalize"
-  }
+    textTransform: "capitalize",
+  },
+  // paper: {
+  //   height: 140,
+  //   width: 100,
+  // },
 });
 
 class NavigationItemDesktop extends Component {
   static propTypes = {
     classes: PropTypes.object,
     navItem: PropTypes.object,
-    routingStore: PropTypes.object
+    routingStore: PropTypes.object,
   };
 
   static defaultProps = {
     classes: {},
     navItem: {},
-    routingStore: {}
+    routingStore: {},
   };
 
   state = { isSubNavOpen: false };
@@ -60,15 +64,19 @@ class NavigationItemDesktop extends Component {
   linkPath = (providedNavItem) => {
     const { navItem, routingStore } = this.props;
 
-    const currentNavItem = (providedNavItem && providedNavItem.navigationItem) || navItem.navigationItem;
+    const currentNavItem =
+      (providedNavItem && providedNavItem.navigationItem) ||
+      navItem.navigationItem;
 
     return routingStore.queryString !== ""
       ? `${currentNavItem.data.url}?${routingStore.queryString}`
       : `${currentNavItem.data.url}`;
-  }
+  };
 
   get hasSubNavItems() {
-    const { navItem: { items } } = this.props;
+    const {
+      navItem: { items },
+    } = this.props;
     return Array.isArray(items) && items.length > 0;
   }
 
@@ -87,9 +95,23 @@ class NavigationItemDesktop extends Component {
     this.setState({ isSubNavOpen: false });
   };
 
+  handleSubmit = () => {
+    const path = this.linkPath();
+    // event.preventDefault();
+  };
+
   renderSubNav(navItemGroup) {
     const menuItems = navItemGroup.items.map((item, index) => {
-      const { navigationItem: { data: { contentForLanguage, classNames: navigationItemClassNames, isUrlRelative, shouldOpenInNewWindow } } } = item;
+      const {
+        navigationItem: {
+          data: {
+            contentForLanguage,
+            classNames: navigationItemClassNames,
+            isUrlRelative,
+            shouldOpenInNewWindow,
+          },
+        },
+      } = item;
       return (
         <MenuItem dense key={index}>
           <Link
@@ -112,7 +134,11 @@ class NavigationItemDesktop extends Component {
   }
 
   renderPopover() {
-    const { classes, navItem, navItem: { items, navigationItem } } = this.props;
+    const {
+      classes,
+      navItem,
+      navItem: { items, navigationItem },
+    } = this.props;
 
     if (items) {
       return (
@@ -126,10 +152,149 @@ class NavigationItemDesktop extends Component {
         >
           <Grid container className={classes.grid} spacing={2}>
             {items.map((item, index) => {
-              const { navigationItem: { data: { contentForLanguage, classNames: navigationItemClassNames, isUrlRelative, shouldOpenInNewWindow } } } = item;
+              const {
+                navigationItem: {
+                  data: {
+                    contentForLanguage,
+                    classNames: navigationItemClassNames,
+                    isUrlRelative,
+                    shouldOpenInNewWindow,
+                  },
+                },
+              } = item;
               return (
                 <Grid item key={index}>
-                  <MenuList disablePadding>
+                  <form
+                    action={`${this.linkPath()}en/tag/search`}
+                    className={classes.container}
+                    onSubmit={this.handleSubmit()}
+                  >
+                    <Grid item xs={12}>
+                      <Grid container justify="center" spacing={2}>
+                        <Grid key={1} item>
+                          <Typography variant="h5" gutterBottom>
+                            Location A
+                          </Typography>
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="Street Number"
+                            multiline
+                            name="street_number"
+                            // rowsMax={4}
+                            // value="123"
+                            // onChange={handleChange}
+                          />
+                          <br />
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="Street Name"
+                            multiline
+                            name="street_name"
+                            // rowsMax={4}
+                            // value="123"
+                            // onChange={handleChange}
+                          />
+                          <br />
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="City"
+                            multiline
+                            name="locationa"
+                            // rowsMax={4}
+                            // value="123"
+                            // onChange={handleChange}
+                          />
+                          <br />
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="Country"
+                            multiline
+                            name="country"
+                            // rowsMax={4}
+                            // value="123"
+                            // onChange={handleChange}
+                          />
+                          <br />
+                        </Grid>
+                        <Grid key={2} item>
+                          <Typography variant="h5" gutterBottom>
+                            Location B
+                          </Typography>
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="Street Number"
+                            multiline
+                            name="loc2_snum"
+                            // rowsMax={4}
+                            // value="123"
+                            // onChange={handleChange}
+                          />
+                          <br />
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="Street Name"
+                            multiline
+                            name="loc2_sname"
+                            // rowsMax={4}
+                            // value="123"
+                            // onChange={handleChange}
+                          />
+                          <br />
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="City"
+                            multiline
+                            name="locationz"
+                            // rowsMax={4}
+                            // value="123"
+                            // onChange={handleChange}
+                          />
+                          <br />
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="Country"
+                            multiline
+                            name="loc2_cntry"
+                            // rowsMax={4}
+                            // value="123"
+                            // onChange={handleChange}
+                          />
+                          <br />
+                        </Grid>
+                        <Grid key={3} item>
+                          <Typography variant="h5" gutterBottom>
+                            Service Attributes
+                          </Typography>
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="Service Type"
+                            multiline
+                            name="type"
+                            // rowsMax={4}
+                            value=""
+                            // onChange={handleChange}
+                          />
+                          <br />
+                          <TextField
+                            id="standard-multiline-flexible"
+                            label="Speed (Mb)"
+                            multiline
+                            name="speed"
+                            // rowsMax={4}
+                            value=""
+                            // onChange={handleChange}
+                          />
+                          <br />
+                        </Grid>
+                      </Grid>
+                      <br />
+                      <br />
+                      <Button type="submit" variant="contained" color="primary">
+                        Check Serviceability
+                      </Button>
+                    </Grid>
+                  </form>
+                  {/* <MenuList disablePadding>
                     <MenuItem>
                       <Link
                         className={navigationItemClassNames}
@@ -142,12 +307,12 @@ class NavigationItemDesktop extends Component {
                       </Link>
                     </MenuItem>
                     {Array.isArray(item.items) && this.renderSubNav(item)}
-                  </MenuList>
+                  </MenuList> */}
                 </Grid>
               );
             })}
           </Grid>
-          <Link
+          {/* <Link
             className={classes.navigationShopAllLink}
             onClick={this.onClose}
             route={this.linkPath(navItem)}
@@ -155,8 +320,11 @@ class NavigationItemDesktop extends Component {
             isUrlAbsolute={!navigationItem.data.isUrlRelative}
             shouldOpenInNewWindow={navigationItem.data.shouldOpenInNewWindow}
           >
-            <span>Shop all {navigationItem.data.contentForLanguage} <ChevronRight className={classes.navigationShopAllLinkIcon} /></span>
-          </Link>
+            <span>
+              Shop all {navigationItem.data.contentForLanguage}{" "}
+              <ChevronRight className={classes.navigationShopAllLinkIcon} />
+            </span>
+          </Link> */}
         </Popover>
       );
     }
@@ -165,13 +333,30 @@ class NavigationItemDesktop extends Component {
   }
 
   render() {
-    const { classes: { primaryNavItem }, navItem, navItem: { navigationItem } } = this.props;
+    const {
+      classes: { primaryNavItem },
+      navItem,
+      navItem: { navigationItem },
+    } = this.props;
 
     return (
       <Fragment>
-        <Button className={classNames(primaryNavItem, navigationItem.data.classNames)} color="inherit" onClick={this.onClick} href={this.linkPath(navItem)}>
+        <Button
+          className={classNames(primaryNavItem, navigationItem.data.classNames)}
+          color="inherit"
+          onClick={this.onClick}
+          href={this.linkPath(navItem)}
+        >
           {navigationItem.data.contentForLanguage}
-          {this.hasSubNavItems && <Fragment>{this.state.isSubNavOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}</Fragment>}
+          {this.hasSubNavItems && (
+            <Fragment>
+              {this.state.isSubNavOpen ? (
+                <ChevronUpIcon />
+              ) : (
+                <ChevronDownIcon />
+              )}
+            </Fragment>
+          )}
         </Button>
         {this.hasSubNavItems && this.renderPopover()}
       </Fragment>
@@ -179,4 +364,6 @@ class NavigationItemDesktop extends Component {
   }
 }
 
-export default withStyles(styles)(inject("routingStore")(NavigationItemDesktop));
+export default withStyles(styles)(
+  inject("routingStore")(NavigationItemDesktop)
+);

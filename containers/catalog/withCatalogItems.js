@@ -3,7 +3,10 @@ import PropTypes from "prop-types";
 import inject from "hocs/inject";
 import { Query } from "@apollo/react-components";
 import hoistNonReactStatic from "hoist-non-react-statics";
-import { pagination, paginationVariablesFromUrlParams } from "lib/utils/pagination";
+import {
+  pagination,
+  paginationVariablesFromUrlParams,
+} from "lib/utils/pagination";
 import catalogItemsQuery from "./catalogItems.gql";
 
 /**
@@ -18,35 +21,53 @@ export default function withCatalogItems(Component) {
       primaryShopId: PropTypes.string,
       routingStore: PropTypes.object.isRequired,
       tag: PropTypes.shape({
-        _id: PropTypes.string.isRequired
+        _id: PropTypes.string.isRequired,
       }),
-      uiStore: PropTypes.object.isRequired
+      uiStore: PropTypes.object.isRequired,
     };
 
     render() {
-      const { primaryShopId, routingStore, uiStore, tag } = this.props;
+      const { primaryShopId, routingStore, uiStore, tag, tags } = this.props;
       const [sortBy, sortOrder] = uiStore.sortBy.split("-");
-      const tagIds = tag && [tag._id];
+      let tagIds =
+        Object.keys(routingStore.query).length > 0 ? [] : tag && [tag._id];
+
+      if (Object.keys(routingStore.query).length > 0) {
+        let queryStrings = routingStore.query;
+        delete queryStrings["slug"];
+        delete queryStrings["lang"];
+
+        for (let key in queryStrings) {
+          let tagResults = tags.filter(function (tag) {
+            return tag.name == queryStrings[key];
+          });
+          if (tagResults.length > 0) {
+            tagIds.push(tagResults[0]._id);
+          }
+        }
+      }
 
       if (!primaryShopId) {
-        return (
-          <Component
-            {...this.props}
-          />
-        );
+        return <Component {...this.props} />;
       }
 
       const variables = {
         shopId: primaryShopId,
-        ...paginationVariablesFromUrlParams(routingStore.query, { defaultPageLimit: uiStore.pageSize }),
+        ...paginationVariablesFromUrlParams(routingStore.query, {
+          defaultPageLimit: uiStore.pageSize,
+        }),
         tagIds,
         sortBy,
         sortByPriceCurrencyCode: uiStore.sortByCurrencyCode,
-        sortOrder
+        sortOrder,
       };
 
       return (
-        <Query errorPolicy="all" query={catalogItemsQuery} variables={variables}>
+        <Query
+          errorPolicy="all"
+          query={catalogItemsQuery}
+          variables={variables}
+        >
           {({ data, fetchMore, loading }) => {
             const { catalogItems } = data || {};
 
@@ -58,7 +79,7 @@ export default function withCatalogItems(Component) {
                   routingStore,
                   data,
                   queryName: "catalogItems",
-                  limit: uiStore.pageSize
+                  limit: uiStore.pageSize,
                 })}
                 catalogItems={(catalogItems && catalogItems.edges) || []}
                 isLoadingCatalogItems={loading}
