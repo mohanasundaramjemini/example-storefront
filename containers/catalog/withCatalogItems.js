@@ -39,7 +39,7 @@ export default function withCatalogItems(Component) {
 
         for (let key in queryStrings) {
           let tagResults = tags.filter(function (tag) {
-            return tag.name == queryStrings[key];
+            return tag.name == queryStrings[key].toLowerCase().trim();
           });
           if (tagResults.length > 0) {
             tagIds.push(tagResults[0]._id);
