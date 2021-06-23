@@ -111,7 +111,7 @@ class CheckoutActions extends Component {
     } = this.props;
     delete address.isValid;
     const { data, error } = await onSetShippingAddress(address);
-
+    console.log("setShippingAddress data ====> ", data);
     if (data && !error && this._isMounted) {
       this.setState({
         actionAlerts: {
@@ -381,6 +381,7 @@ class CheckoutActions extends Component {
       paymentMethods,
     } = this.props;
 
+    console.log('Checkout Actions Props =====> ', this.props);
     const {
       checkout: { fulfillmentGroups, summary },
       items,
@@ -389,9 +390,10 @@ class CheckoutActions extends Component {
     const [fulfillmentGroup] = fulfillmentGroups;
 
     // Order summary
-    const { fulfillmentTotal, itemTotal, surchargeTotal, taxTotal, total } =
+    const { fulfillmentTotal, itemTotal, surchargeTotal, taxTotal, total, discountTotal } =
       summary;
     const checkoutSummary = {
+      displayDiscount:discountTotal && discountTotal.displayAmount,
       displayShipping: fulfillmentTotal && fulfillmentTotal.displayAmount,
       displaySubtotal: itemTotal.displayAmount,
       displaySurcharge: surchargeTotal.displayAmount,

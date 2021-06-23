@@ -21,27 +21,27 @@ import fetchTranslations from "staticUtils/translations/fetchTranslations";
 
 const styles = (theme) => ({
   cartEmptyMessageContainer: {
-    margin: "80px 0"
+    margin: "80px 0",
   },
   checkoutButtonsContainer: {
     backgroundColor: theme.palette.reaction.black02,
-    padding: theme.spacing(2)
+    padding: theme.spacing(2),
   },
   customerSupportCopy: {
-    paddingLeft: `${theme.spacing(4)}px !important`
+    paddingLeft: `${theme.spacing(4)}px !important`,
   },
   phoneNumber: {
-    fontWeight: theme.typography.fontWeightBold
+    fontWeight: theme.typography.fontWeightBold,
   },
   title: {
     fontWeight: theme.typography.fontWeightRegular,
     marginTop: "1.6rem",
-    marginBottom: "3.1rem"
+    marginBottom: "3.1rem",
   },
   itemWrapper: {
     borderTop: theme.palette.borders.default,
-    borderBottom: theme.palette.borders.default
-  }
+    borderBottom: theme.palette.borders.default,
+  },
 });
 
 class CartPage extends Component {
@@ -51,15 +51,19 @@ class CartPage extends Component {
       items: PropTypes.arrayOf(PropTypes.object),
       checkout: PropTypes.shape({
         fulfillmentTotal: PropTypes.shape({
-          displayAmount: PropTypes.string
+          displayAmount: PropTypes.string,
+        }),
+        discountTotal: PropTypes.shape({
+          //amount: PropTypes.number,
+          displayAmount: PropTypes.string,
         }),
         itemTotal: PropTypes.shape({
-          displayAmount: PropTypes.string
+          displayAmount: PropTypes.string,
         }),
         taxTotal: PropTypes.shape({
-          displayAmount: PropTypes.string
-        })
-      })
+          displayAmount: PropTypes.string,
+        }),
+      }),
     }),
     classes: PropTypes.object,
     hasMoreCartItems: PropTypes.bool,
@@ -68,8 +72,8 @@ class CartPage extends Component {
     onRemoveCartItems: PropTypes.func,
     shop: PropTypes.shape({
       name: PropTypes.string.isRequired,
-      description: PropTypes.string
-    })
+      description: PropTypes.string,
+    }),
   };
 
   handleClick = () => Router.push("/");
@@ -87,11 +91,18 @@ class CartPage extends Component {
   };
 
   renderCartItems() {
-    const { cart, classes, hasMoreCartItems, loadMoreCartItems, authStore } = this.props;
-    if(authStore.account.addressBook) {
-      console.log('Cart this.props =====> ', authStore.account.addressBook.edges[0].node);
-      localStorage.removeItem('UserAddress');
-      localStorage.setItem('UserAddress', JSON.stringify(authStore.account.addressBook.edges[0].node));  
+    const { cart, classes, hasMoreCartItems, loadMoreCartItems, authStore } =
+      this.props;
+    if (authStore.account.addressBook) {
+      console.log(
+        "Cart this.props =====> ",
+        authStore.account.addressBook.edges[0].node
+      );
+      localStorage.removeItem("UserAddress");
+      localStorage.setItem(
+        "UserAddress",
+        JSON.stringify(authStore.account.addressBook.edges[0].node)
+      );
     }
     if (cart && Array.isArray(cart.items) && cart.items.length) {
       return (
@@ -118,47 +129,63 @@ class CartPage extends Component {
 
   requestQuote = async function (itemInfo) {
     try {
-      console.log('Cart Product Code =====> ', itemInfo.variantTitle);
-      console.log('Cart Summary =====> ', itemInfo.productTags.nodes);
-      let authorization = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjYXRhd29yeCJ9.qb7x10X3T_bBq64Il0UoLMr2gPpqiZsmk48e-6QXuM8';
+      console.log("Cart Product Code =====> ", itemInfo.variantTitle);
+      console.log("Cart Summary =====> ", itemInfo.productTags.nodes);
+      let authorization =
+        "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjYXRhd29yeCJ9.qb7x10X3T_bBq64Il0UoLMr2gPpqiZsmk48e-6QXuM8";
       const requestOptions = {
-        method: 'POST',
-        headers: { 'Authorization': authorization, 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: {
+          Authorization: authorization,
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+        },
       };
 
       // const res = await fetch(`http://34.106.29.102:8081/api/mef/quoteManagement/quote/requestQuotes?allRequestParams=location1%3DASIA%201%26location2%3DEUROPE`, requestOptions);
-      const res = await fetch(`http://34.106.29.102:8000/quoteManagement/requestQuotes?productcode=${itemInfo.variantTitle}&buyerCompany=Acme`, requestOptions);
+      const res = await fetch(
+        `http://34.106.29.102:8000/quoteManagement/requestQuotes?productcode=${itemInfo.variantTitle}&buyerCompany=Acme`,
+        requestOptions
+      );
       const quote = await res.json();
 
-      localStorage.removeItem('currentQuote');
-      localStorage.setItem('currentQuote', JSON.stringify(quote));
-      console.log('Request Quote Success', quote);
+      localStorage.removeItem("currentQuote");
+      localStorage.setItem("currentQuote", JSON.stringify(quote));
+      console.log("Request Quote Success", quote);
       if (quote.data !== undefined) {
-        console.log('Request Quote Success', quote.data);
+        console.log("Request Quote Success", quote.data);
       } else {
-        console.log('Request Quote Failed');
+        console.log("Request Quote Failed");
       }
     } catch (err) {
       console.log("Unable request quote");
       console.log(err.message);
     }
-  }
+  };
 
   renderCartSummary() {
     const { cart, classes } = this.props;
-    let itemInfo = '';
+    console.log("Cart details this.props =====> ", this.props);
+    let itemInfo = "";
     let itemPrice = 50;
-    if (cart && cart.checkout && cart.checkout.summary && Array.isArray(cart.items) && cart.items.length) {
-      const { fulfillmentTotal, itemTotal, surchargeTotal, taxTotal, total } = cart.checkout.summary;
-      // cart.items.price.amount = 100;
+    if (
+      cart &&
+      cart.checkout &&
+      cart.checkout.summary &&
+      Array.isArray(cart.items) &&
+      cart.items.length
+    ) {
+      const { fulfillmentTotal, itemTotal, surchargeTotal, taxTotal, total, discountTotal } =
+        cart.checkout.summary;
+        // fulfillmentTotal.displayAmount=10;
+        // discountTotal.amount = '10';
+        // discountTotal.displayAmount = '$10.00';
       // itemTotal.displayAmount = 50;
       // Object.assign(itemTotal, {displayAmount:50});
       cart.items.forEach(function (item, index) {
-
-        console.log('Cart details =====> ', cart);
-        console.log('Cart details item =====> ', item);
-        console.log('Cart item item =====> ', item.price.amount);
-        console.log('Call NWS Request Quote Endpoint');
+        console.log("Cart details discountTotal =====> ", discountTotal);
+        console.log("Cart item item =====> ", item.price.amount);
+        console.log("Call NWS Request Quote Endpoint");
         itemInfo = item;
       });
       this.requestQuote(itemInfo);
@@ -168,11 +195,11 @@ class CartPage extends Component {
           <CartSummary
             displayShipping={fulfillmentTotal && fulfillmentTotal.displayAmount}
             displaySubtotal={itemTotal && itemTotal.displayAmount}
-            // displaySubtotal={itemPrice}
+            displayDiscount={discountTotal && discountTotal.displayAmount}
             displaySurcharge={surchargeTotal && surchargeTotal.displayAmount}
+            // displayTax="10"
             displayTax={taxTotal && taxTotal.displayAmount}
             displayTotal={total && total.displayAmount}
-            // displayTotal={itemPrice}
             itemsQuantity={cart.totalItemQuantity}
           />
           <div className={classes.checkoutButtonsContainer}>
@@ -231,10 +258,12 @@ class CartPage extends Component {
 export async function getServerSideProps({ params: { lang } }) {
   return {
     props: {
-      ...await fetchPrimaryShop(lang),
-      ...await fetchTranslations(lang, ["common"])
-    }
+      ...(await fetchPrimaryShop(lang)),
+      ...(await fetchTranslations(lang, ["common"])),
+    },
   };
 }
 
-export default withApollo()(withStyles(styles)(withCart(inject("uiStore")(CartPage))));
+export default withApollo()(
+  withStyles(styles)(withCart(inject("uiStore")(CartPage)))
+);

@@ -85,7 +85,8 @@ class CheckoutSummary extends Component {
         itemTotal,
         surchargeTotal,
         taxTotal,
-        total
+        total,
+        discountTotal
       } = cart.checkout.summary;
 
       return (
@@ -94,6 +95,7 @@ class CheckoutSummary extends Component {
             isDense
             displayShipping={fulfillmentTotal && fulfillmentTotal.displayAmount}
             displaySubtotal={itemTotal && itemTotal.displayAmount}
+            displayDiscount={discountTotal && discountTotal.displayAmount}
             displaySurcharge={surchargeTotal && surchargeTotal.displayAmount}
             displayTax={taxTotal && taxTotal.displayAmount}
             displayTotal={total && total.displayAmount}

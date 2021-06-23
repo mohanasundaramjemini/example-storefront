@@ -218,7 +218,7 @@ class NavigationItemDesktop extends Component {
                         </Grid>
                         <Grid key={2} item>
                           <Typography variant="h5" gutterBottom>
-                            Location B
+                            Location Z
                           </Typography>
                           <TextField
                             id="standard-multiline-flexible"
@@ -271,7 +271,7 @@ class NavigationItemDesktop extends Component {
                             multiline
                             name="type"
                             // rowsMax={4}
-                            value=""
+                            // value=""
                             // onChange={handleChange}
                           />
                           <br />
@@ -281,7 +281,7 @@ class NavigationItemDesktop extends Component {
                             multiline
                             name="speed"
                             // rowsMax={4}
-                            value=""
+                            // value=""
                             // onChange={handleChange}
                           />
                           <br />
