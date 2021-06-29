@@ -305,6 +305,7 @@ class CheckoutActions extends Component {
 
     try {
       console.log("checkoutActions order ===> ", order);
+      order.fulfillmentGroups[0].totalPrice = order.fulfillmentGroups[0].items.price;
       console.log("checkoutActions payments ===> ", payments);
       const { data } = await apolloClient.mutate({
         mutation: placeOrderMutation,

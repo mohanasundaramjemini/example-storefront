@@ -54,7 +54,7 @@ class CartPage extends Component {
           displayAmount: PropTypes.string,
         }),
         discountTotal: PropTypes.shape({
-          //amount: PropTypes.number,
+          amount: PropTypes.number,
           displayAmount: PropTypes.string,
         }),
         itemTotal: PropTypes.shape({
@@ -167,7 +167,6 @@ class CartPage extends Component {
     const { cart, classes } = this.props;
     console.log("Cart details this.props =====> ", this.props);
     let itemInfo = "";
-    let itemPrice = 50;
     if (
       cart &&
       cart.checkout &&
@@ -177,13 +176,7 @@ class CartPage extends Component {
     ) {
       const { fulfillmentTotal, itemTotal, surchargeTotal, taxTotal, total, discountTotal } =
         cart.checkout.summary;
-        // fulfillmentTotal.displayAmount=10;
-        // discountTotal.amount = '10';
-        // discountTotal.displayAmount = '$10.00';
-      // itemTotal.displayAmount = 50;
-      // Object.assign(itemTotal, {displayAmount:50});
       cart.items.forEach(function (item, index) {
-        console.log("Cart details discountTotal =====> ", discountTotal);
         console.log("Cart item item =====> ", item.price.amount);
         console.log("Call NWS Request Quote Endpoint");
         itemInfo = item;

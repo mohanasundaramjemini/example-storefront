@@ -13,7 +13,8 @@ import {
   setFulfillmentOptionCartMutation,
   setShippingAddressCartMutation,
   updateCartItemsQuantityMutation,
-  updateFulfillmentOptionsForGroup
+  updateFulfillmentOptionsForGroup,
+  applyDiscountCodeToCart
 } from "./mutations.gql";
 import {
   accountCartByAccountIdQuery,
@@ -77,6 +78,7 @@ export default function useCart() {
 
   const cart = useMemo(() => {
     if (!shouldSkipAccountCartByAccountIdQuery && cartData) {
+    console.log('useCart Cart LN 80 ====> ', cartData);
       return cartData.cart;
     }
     if (!shouldSkipAnonymousCartByCartIdQuery && cartDataAnonymous) {
@@ -117,6 +119,8 @@ export default function useCart() {
     loading: addOrCreateCartLoading
   }] = useMutation(cart && cart._id ? addCartItemsMutation : createCartMutation, {
     onCompleted(addOrCreateCartMutationData) {
+      console.log('handleAddItemsToCart useCart ===> ', cart);
+
       if (addOrCreateCartMutationData && addOrCreateCartMutationData.createCart && (!viewer || !viewer._id)) {
         const { cart: cartPayload, token } = addOrCreateCartMutationData.createCart;
         cartStore.setAnonymousCartCredentials(cartPayload._id, token);
@@ -130,6 +134,7 @@ export default function useCart() {
       }
     }
   });
+
 
   const [removeCartItemsMutationFun, {
     loading: removeCartItemsLoading
@@ -160,6 +165,7 @@ export default function useCart() {
   }), [cartStore.anonymousCartId, cartStore.accountCartId, cartStore.anonymousCartToken]);
 
   const handleAddItemsToCart = async (data, isCreating) => {
+    console.log('handleAddItemsToCart data LN 169 ===> ', data);
     const input = {
       items: data.items
     };
@@ -189,7 +195,25 @@ export default function useCart() {
     });
   };
 
+  const handleApplyDiscountCode = async () => {
+    console.log('Inside Discount Apply');
+    let discountCode = 'DEFAULT';
+    await apolloClient.mutate({
+      mutation: applyDiscountCodeToCart,
+      variables: {
+        input: {
+          ...cartIdAndCartToken(),
+          discountCode: discountCode,
+          shopId: shop && shop._id,
+          token: cartStore.anonymousCartToken
+        }
+      }
+    });
+  };
+
   const handleUpdateFulfillmentOptionsForGroup = async (fulfillmentGroupId) => {
+    console.log('handleUpdateFulfillmentOptionsForGroup fulfillmentGroupId ====> ', cartIdAndCartToken(), fulfillmentGroupId);
+    handleApplyDiscountCode();
     await apolloClient.mutate({
       mutation: updateFulfillmentOptionsForGroup,
       variables: {
@@ -251,6 +275,7 @@ export default function useCart() {
       ...cart,
       items: cartItemsConnectionToArray(cart.items)
     };
+    console.log('processedCartData LN 262 ===> ', processedCartData);
   }
 
   return {
@@ -262,7 +287,7 @@ export default function useCart() {
         const cartIdData = cartIdAndCartToken();
 
         if (!cartIdData.cartId) return null;
-
+        console.log('onSetFulfillmentOption cartIdData ====> ', cartIdData);
         const response = await apolloClient.mutate({
           mutation: setFulfillmentOptionCartMutation,
           variables: {
@@ -273,7 +298,7 @@ export default function useCart() {
             }
           }
         });
-
+        console.log('useCart Response ====> ', response);
         return response;
       },
       onSetShippingAddress: async (address) => {
@@ -289,10 +314,27 @@ export default function useCart() {
 
         // Update fulfillment options for current cart
         const { data: { setShippingAddressOnCart } } = response;
-        handleUpdateFulfillmentOptionsForGroup(setShippingAddressOnCart.cart.checkout.fulfillmentGroups[0]._id);
-
+        console.log('useCart Shipping Address Response ====> ', response);
+        handleUpdateFulfillmentOptionsForGroup(setShippingAddressOnCart.cart.checkout.fulfillmentGroups[0]._id); 
         return response;
-      }
+      },
+      // ================ We can modify this after the feedback ============
+      // handleApplyDiscountCode: async () => {
+      //   console.log('Inside Discount Apply');
+      //   let discountCode = 'DEFAULT';
+      //   await apolloClient.mutate({
+      //     mutation: applyDiscountCodeToCart,
+      //     variables: {
+      //       input: {
+      //         ...cartIdAndCartToken(),
+      //         discountCode: discountCode,
+      //         shopId: shop && shop._id,
+      //         token: cartStore.anonymousCartToken
+      //       }
+      //     }
+      //   });
+      // }
+      // =================
     },
     hasMoreCartItems: (pageInfo && pageInfo.hasNextPage) || false,
     isLoadingCart: isLoadingViewer || isLoading,

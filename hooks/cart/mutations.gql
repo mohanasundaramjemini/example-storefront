@@ -96,3 +96,12 @@ mutation updateFulfillmentOptionsForGroup($input: UpdateFulfillmentOptionsForGro
     }
   }
 }
+
+# Update discountCode
+mutation applyDiscountCodeToCart($input: ApplyDiscountCodeToCartInput!) {
+  applyDiscountCodeToCart(input: $input) {
+      cart {
+      ...CartPayloadFragment
+    }
+  }
+}
