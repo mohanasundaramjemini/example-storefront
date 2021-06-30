@@ -33,20 +33,44 @@ export default function withCatalogItems(Component) {
         Object.keys(routingStore.query).length > 0 ? [] : tag && [tag._id];
 
       if (Object.keys(routingStore.query).length > 0) {
+        let iteration = 1;
         let queryStrings = routingStore.query;
         delete queryStrings["slug"];
         delete queryStrings["lang"];
 
         for (let key in queryStrings) {
-          let tagResults = tags.filter(function (tag) {
-            return tag.name == queryStrings[key].toLowerCase().trim();
-          });
-          if (tagResults.length > 0) {
-            tagIds.push(tagResults[0]._id);
+          if (iteration == 1) {
+            if (queryStrings.speed !== "") {
+              let tagResults = tags.filter(function (tag) {
+                return (
+                  tag.name ==
+                  `${queryStrings.locationa
+                    .toLowerCase()
+                    .trim()}-${queryStrings.locationz.toLowerCase().trim()}-${
+                    queryStrings.speed
+                  }`
+                );
+              });
+              if (tagResults.length > 0) {
+                tagIds.push(tagResults[0]._id);
+              }
+            } else {
+              let tagResults = tags.filter(function (tag) {
+                return (
+                  tag.name ==
+                  `${queryStrings.locationa
+                    .toLowerCase()
+                    .trim()}-${queryStrings.locationz.toLowerCase().trim()}`
+                );
+              });
+              if (tagResults.length > 0) {
+                tagIds.push(tagResults[0]._id);
+              }
+            }
           }
+          iteration++;
         }
       }
-
       if (!primaryShopId) {
         return <Component {...this.props} />;
       }

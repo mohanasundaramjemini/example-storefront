@@ -123,6 +123,10 @@ fragment OrderCommon on Order {
         amount
         displayAmount
       }
+      discountTotal {
+        amount
+        displayAmount
+      }
       surchargeTotal {
         amount
         displayAmount
@@ -177,6 +181,10 @@ fragment OrderCommon on Order {
     itemTotal {
       amount
       displayAmount
+    }
+    discountTotal {
+        amount
+        displayAmount
     }
     surchargeTotal {
       amount

@@ -12,6 +12,10 @@ class OrderCardSummary extends Component {
       itemTotal: PropTypes.shape({
         displayAmount: PropTypes.string
       }),
+      discountTotal: PropTypes.shape({
+        amount: PropTypes.number,
+        displayAmount: PropTypes.string,
+      }),
       surchargeTotal: PropTypes.shape({
         displayAmount: PropTypes.string
       }),
@@ -26,14 +30,14 @@ class OrderCardSummary extends Component {
 
   render() {
     const { summary } = this.props;
-
     if (summary) {
       const {
         fulfillmentTotal,
         itemTotal,
         surchargeTotal,
         taxTotal,
-        total
+        total,
+        discountTotal
       } = summary;
 
       return (
@@ -41,6 +45,7 @@ class OrderCardSummary extends Component {
           isDense
           displayShipping={fulfillmentTotal && fulfillmentTotal.displayAmount}
           displaySubtotal={itemTotal && itemTotal.displayAmount}
+          displayDiscount={discountTotal && discountTotal.displayAmount}
           displaySurcharge={surchargeTotal && surchargeTotal.displayAmount}
           displayTax={taxTotal && taxTotal.displayAmount}
           displayTotal={total && total.displayAmount}

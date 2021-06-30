@@ -180,9 +180,6 @@ class NavigationItemDesktop extends Component {
                             label="Street Number"
                             multiline
                             name="street_number"
-                            // rowsMax={4}
-                            // value="123"
-                            // onChange={handleChange}
                           />
                           <br />
                           <TextField
@@ -190,9 +187,6 @@ class NavigationItemDesktop extends Component {
                             label="Street Name"
                             multiline
                             name="street_name"
-                            // rowsMax={4}
-                            // value="123"
-                            // onChange={handleChange}
                           />
                           <br />
                           <TextField
@@ -200,9 +194,7 @@ class NavigationItemDesktop extends Component {
                             label="City"
                             multiline
                             name="locationa"
-                            // rowsMax={4}
-                            // value="123"
-                            // onChange={handleChange}
+                            required
                           />
                           <br />
                           <TextField
@@ -210,9 +202,6 @@ class NavigationItemDesktop extends Component {
                             label="Country"
                             multiline
                             name="country"
-                            // rowsMax={4}
-                            // value="123"
-                            // onChange={handleChange}
                           />
                           <br />
                         </Grid>
@@ -225,9 +214,6 @@ class NavigationItemDesktop extends Component {
                             label="Street Number"
                             multiline
                             name="loc2_snum"
-                            // rowsMax={4}
-                            // value="123"
-                            // onChange={handleChange}
                           />
                           <br />
                           <TextField
@@ -235,9 +221,6 @@ class NavigationItemDesktop extends Component {
                             label="Street Name"
                             multiline
                             name="loc2_sname"
-                            // rowsMax={4}
-                            // value="123"
-                            // onChange={handleChange}
                           />
                           <br />
                           <TextField
@@ -245,9 +228,7 @@ class NavigationItemDesktop extends Component {
                             label="City"
                             multiline
                             name="locationz"
-                            // rowsMax={4}
-                            // value="123"
-                            // onChange={handleChange}
+                            required
                           />
                           <br />
                           <TextField
@@ -255,9 +236,6 @@ class NavigationItemDesktop extends Component {
                             label="Country"
                             multiline
                             name="loc2_cntry"
-                            // rowsMax={4}
-                            // value="123"
-                            // onChange={handleChange}
                           />
                           <br />
                         </Grid>
@@ -270,9 +248,6 @@ class NavigationItemDesktop extends Component {
                             label="Service Type"
                             multiline
                             name="type"
-                            // rowsMax={4}
-                            // value=""
-                            // onChange={handleChange}
                           />
                           <br />
                           <TextField
@@ -280,9 +255,6 @@ class NavigationItemDesktop extends Component {
                             label="Speed (Mb)"
                             multiline
                             name="speed"
-                            // rowsMax={4}
-                            // value=""
-                            // onChange={handleChange}
                           />
                           <br />
                         </Grid>
