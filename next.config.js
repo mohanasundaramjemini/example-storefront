@@ -118,6 +118,14 @@ module.exports = {
         {
           source: "/",
           destination: "/api/detectLanguage"
+        },
+        {
+          source: "/stripeGetUser",
+          destination: "/api/account/stripeGetUser"
+        },
+        {
+          source: "/stripeUpdateUser",
+          destination: "/api/account/stripeUpdateUser"
         }
       ];
     }

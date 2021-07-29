@@ -3,6 +3,7 @@ import React, { Fragment, Component } from "react";
 import PropTypes from "prop-types";
 import { isEqual } from "lodash";
 import styled from "styled-components";
+import Stripe from "stripe";
 import Actions from "@reactioncommerce/components/CheckoutActions/v1";
 import ShippingAddressCheckoutAction from "@reactioncommerce/components/ShippingAddressCheckoutAction/v1";
 import FulfillmentOptionsCheckoutAction from "@reactioncommerce/components/FulfillmentOptionsCheckoutAction/v1";
@@ -15,6 +16,9 @@ import PageLoading from "components/PageLoading";
 import Router from "translations/i18nRouter";
 import calculateRemainderDue from "lib/utils/calculateRemainderDue";
 import { placeOrderMutation } from "../../hooks/orders/placeOrder.gql";
+import { decodeOpaqueId } from "../../lib/utils/decoding";
+
+// import { updateStripeDataToUserCollection } from "../../pages/api/rememberUserCard";
 
 const MessageDiv = styled.div`
   ${addTypographyStyles("NoPaymentMethodsMessage", "bodyText")}
@@ -25,6 +29,8 @@ const NoPaymentMethodsMessage = () => (
 );
 
 NoPaymentMethodsMessage.renderComplete = () => "";
+
+const stripe = new Stripe(process.env.STRIPE_PUBLIC_API_KEY);
 
 class CheckoutActions extends Component {
   static propTypes = {
@@ -75,6 +81,85 @@ class CheckoutActions extends Component {
 
   componentDidMount() {
     this._isMounted = true;
+
+    /** GET Stripe Id from user. If there is no Id, create a customer in Stripe, Get the userId and update the collections with the Id */
+    /*
+    this.getStripeCustomerId(
+      decodeOpaqueId(this.props.cart.account._id).id
+    ).then((userStripeId) => {
+      if (userStripeId !== undefined) {
+        console.log("createCustomer Stripe Id Successful 1 ", userStripeId);
+        localStorage.setItem("custID", userStripeId);
+      } else {
+          localStorage.setItem("custID", "null");        
+      }
+    }); 
+
+    
+    if(localStorage.getItem("custID") == 'null') {
+      // localStorage.removeItem("custID");
+      this.createCustomer(
+        this.props.cart.account.emailRecords[0].address
+      ).then((stripeCust) => {
+        console.log("createCustomer Stripe Id Successful 2 ", stripeCust.id);
+        // this.updateStripeCustomerId(userId, stripeCust.id).then(stripeCust => {
+
+        // });
+        localStorage.setItem("custID", stripeCust.id);
+      });
+
+      console.log(
+        "ComponenDid userStripeCustomerId =====> ",
+        localStorage.getItem("custID")
+      );
+    }
+
+    */
+
+    // If User Id exist, we need to pass the address and card token to the addCheckoutPayment method. 
+    /*
+    const address = {
+      address1: "Test",
+      address2: null,
+      city: "Test",
+      company: null,
+      country: "GB",
+      fullName: "Test",
+      isBillingDefault: false,
+      isCommercial: false,
+      isShippingDefault: false,
+      phone: "123",
+      postal: "Test",
+      region: "Test",
+    };
+    this.setShippingAddress(address);
+
+    const testObj = {
+      displayName: "Visa ending in 4242",
+      payment: {
+        amount: null,
+        billingAddress: {
+          address1: "Test",
+          address2: null,
+          city: "Test",
+          company: null,
+          country: "GB",
+          fullName: "Test",
+          isBillingDefault: false,
+          isCommercial: false,
+          isShippingDefault: false,
+          phone: "123",
+          postal: "Test",
+          region: "Test",
+        },
+        data: {
+          stripeTokenId: "tok_1JGKjLEBeJD27rVsAJaJ5tMR",
+          // stripeTokenId: "tok_1JG1234566tytytytytytyty",
+        },
+        method: "stripe_card",
+      },
+    };
+    this.props.cartStore.addCheckoutPayment(testObj); */
   }
 
   componentWillUnmount() {
@@ -104,14 +189,129 @@ class CheckoutActions extends Component {
     return firstPayment ? firstPayment.payment.method : null;
   }
 
+  // Storefront API to fetch the user details
+  getStripeCustomerId = async (userId) => {
+    try {
+      const retrieveCustomerId = {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+        },
+      };
+
+      const res = await fetch(
+        `${process.env.CANONICAL_URL}/stripeGetUser?userId=${userId}`,
+        retrieveCustomerId
+      );
+      const userDetails = await res.json();
+      // if (userDetails.results[0].stripeId === undefined) {
+      //   return this.createCustomer(
+      //     this.props.cart.account.emailRecords[0].address
+      //   ).then((stripeCust) => {
+      //     console.log("createCustomer Stripe Id Successful 2 ", stripeCust.id);
+      //     // this.updateStripeCustomerId(userId, stripeCust.id).then(stripeCust => {
+
+      //     // });
+      //     return stripeCust.id;
+      //   });
+      // }
+        console.log(
+          "getCustomer Stripe Id Successful ",
+          userDetails.results[0].stripeId
+        );
+        return userDetails.results[0].stripeId;
+    } catch (err) {
+      console.log("getCustomer Unable Get Stripe Id", err);
+      console.log(err.message);
+    }
+  };
+
+  // Storefront API to update the stripe Id to user collection.
+  updateStripeCustomerId = async (userId, stripeCustId) => {
+    try {
+      const retrieveCustomerId = {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+        },
+      };
+
+      const res = await fetch(
+        `${process.env.CANONICAL_URL}/stripeGetUser?userId=${userId}&stripeId=${stripeCustId}`,
+        retrieveCustomerId
+      );
+      const listOfCustomer = await res.json();
+    } catch (err) {
+      console.log("getCustomer Unable Get Stripe Id", err);
+      console.log(err.message);
+    }
+  };
+
+  // Stripe API to Create the customer
+  createCustomer = async (email) => {
+    try {
+      const authorization = "Bearer sk_test_H9SqoV84XLwvJDGPRkFiDQa4";
+      const retrieveCustomer = {
+        method: "POST",
+        headers: {
+          Authorization: authorization,
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+      };
+
+      const res = await fetch(
+        `https://api.stripe.com/v1/customers?description=Our Customer&email=${email}`,
+        retrieveCustomer
+      );
+      const stripeCust = await res.json();
+      console.log(
+        "createCustomer is successful ====> ",
+        stripeCust
+      );
+      return stripeCust;
+    } catch (err) {
+      console.log("createCustomer Error", err);
+    }
+  };
+
+  // Stripe API to Create the customer
+  getCustomer = async (customerId) => {
+    try {
+      const authorization = "Bearer sk_test_H9SqoV84XLwvJDGPRkFiDQa4";
+      const retrieveCustomer = {
+        method: "GET",
+        headers: {
+          Authorization: authorization,
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+      };
+
+      const res = await fetch(
+        `https://api.stripe.com/v1/customers/${customerId}`,
+        retrieveCustomer
+      );
+      const listOfCustomer = await res.json();
+      console.log(
+        "getCustomer is successful ====> ",
+        listOfCustomer
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
   setShippingAddress = async (address) => {
-    console.log("setShippingAddress Parameter ====> ", address);
     const {
       checkoutMutations: { onSetShippingAddress },
     } = this.props;
     delete address.isValid;
     const { data, error } = await onSetShippingAddress(address);
-    console.log("setShippingAddress data ====> ", data);
     if (data && !error && this._isMounted) {
       this.setState({
         actionAlerts: {
@@ -136,8 +336,6 @@ class CheckoutActions extends Component {
   }
 
   setShippingMethod = async (shippingMethod) => {
-    console.log("shippingMethod Parameter ====> ", shippingMethod);
-
     const {
       checkoutMutations: { onSetFulfillmentOption },
     } = this.props;
@@ -150,7 +348,6 @@ class CheckoutActions extends Component {
       fulfillmentMethodId:
         shippingMethod.selectedFulfillmentOption.fulfillmentMethod._id,
     };
-    console.log("setShippingMethod ====> ", fulfillmentOption);
     await onSetFulfillmentOption(fulfillmentOption);
   };
 
@@ -169,6 +366,7 @@ class CheckoutActions extends Component {
       postal: "Test",
       region: "Test",
     };
+    // console.log("handlePaymentSubmit =====> ", paymentInput);
     this.setShippingAddress(address);
     this.props.cartStore.addCheckoutPayment(paymentInput);
 
@@ -186,28 +384,14 @@ class CheckoutActions extends Component {
 
   buildOrder = async () => {
     const { cart, cartStore, orderEmailAddress } = this.props;
-    console.log(
-      "Env Variable ====> ",
-      process.env.ENABLE_SHIPPING,
-      process.env.DEFAULT_SHIPPING_ID
-    );
-    console.log("buildOrder fulfillmentGroups =====> ", this.props);
-
     const cartId = cartStore.hasAccountCart
       ? cartStore.accountCartId
       : cartStore.anonymousCartId;
     const { checkout } = cart;
 
-    console.log("buildOrder checkout ====> ", checkout);
     const fulfillmentGroups = checkout.fulfillmentGroups.map((group) => {
       const { data } = group;
       const { selectedFulfillmentOption } = group;
-
-      console.log("buildOrder data ====> ", group);
-      console.log(
-        "buildOrder selectedFulfillmentOption ====> ",
-        selectedFulfillmentOption
-      );
 
       const items = cart.items.map((item) => ({
         addedAt: item.addedAt,
@@ -237,7 +421,6 @@ class CheckoutActions extends Component {
       shopId: cart.shop._id,
     };
 
-    console.log("buildOrder order ====> ", order);
     return this.setState({ isPlacingOrder: true }, () =>
       this.placeOrder(order)
     );
@@ -245,10 +428,6 @@ class CheckoutActions extends Component {
 
   placeOrderAtNWS = async function () {
     try {
-      console.log(
-        "Current Quote =====> ",
-        JSON.parse(localStorage.getItem("currentQuote"))
-      );
       const currentQuote = JSON.parse(localStorage.getItem("currentQuote"));
       const authorization =
         "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjYXRhd29yeCJ9.qb7x10X3T_bBq64Il0UoLMr2gPpqiZsmk48e-6QXuM8";
@@ -287,7 +466,6 @@ class CheckoutActions extends Component {
   };
 
   placeOrder = async (order) => {
-    console.log("checkout Actions placeOrder ===> ", order);
     const { cartStore, clearAuthenticatedUsersCart, apolloClient } = this.props;
 
     // Payments can have `null` amount to mean "remaining".
@@ -304,9 +482,8 @@ class CheckoutActions extends Component {
     });
 
     try {
-      console.log("checkoutActions order ===> ", order);
-      order.fulfillmentGroups[0].totalPrice = order.fulfillmentGroups[0].items.price;
-      console.log("checkoutActions payments ===> ", payments);
+      order.fulfillmentGroups[0].totalPrice =
+        order.fulfillmentGroups[0].items.price;
       const { data } = await apolloClient.mutate({
         mutation: placeOrderMutation,
         variables: {
@@ -320,14 +497,11 @@ class CheckoutActions extends Component {
       // Placing the order was successful, so we should clear the
       // anonymous cart credentials from cookie since it will be
       // deleted on the server.
-      console.log("checkoutActions data 1 ===> ", data);
       cartStore.clearAnonymousCartCredentials();
       clearAuthenticatedUsersCart();
 
-      console.log("checkoutActions data 2 ===> ", data);
       // Also destroy the collected and cached payment input
       cartStore.resetCheckoutPayments();
-      console.log("checkoutActions data 3 ===> ", data);
       const {
         placeOrder: { orders, token },
       } = data;
@@ -338,7 +512,6 @@ class CheckoutActions extends Component {
           token ? `&token=${token}` : ""
         }`
       );
-      console.log("Call NWS Order Endpoint");
       // this.placeOrderAtNWS();
     } catch (error) {
       console.log("Checkout Actions Error ===> ", error);
@@ -381,8 +554,6 @@ class CheckoutActions extends Component {
       cartStore,
       paymentMethods,
     } = this.props;
-
-    console.log('Checkout Actions Props =====> ', this.props);
     const {
       checkout: { fulfillmentGroups, summary },
       items,
@@ -391,10 +562,16 @@ class CheckoutActions extends Component {
     const [fulfillmentGroup] = fulfillmentGroups;
 
     // Order summary
-    const { fulfillmentTotal, itemTotal, surchargeTotal, taxTotal, total, discountTotal } =
-      summary;
+    const {
+      fulfillmentTotal,
+      itemTotal,
+      surchargeTotal,
+      taxTotal,
+      total,
+      discountTotal,
+    } = summary;
     const checkoutSummary = {
-      displayDiscount:discountTotal && discountTotal.displayAmount,
+      displayDiscount: discountTotal && discountTotal.displayAmount,
       displayShipping: fulfillmentTotal && fulfillmentTotal.displayAmount,
       displaySubtotal: itemTotal.displayAmount,
       displaySurcharge: surchargeTotal.displayAmount,
@@ -408,13 +585,13 @@ class CheckoutActions extends Component {
     //   return list;
     // }, []);
 
-    console.log(
-      "UserAddress From Local storage ===> ",
-      JSON.parse(localStorage.getItem("UserAddress"))
-    );
     const userProfileAddress = JSON.parse(localStorage.getItem("UserAddress"));
     let addresses = "";
-    if (userProfileAddress != undefined && userProfileAddress.fullName && userProfileAddress.address1) {
+    if (
+      userProfileAddress != undefined &&
+      userProfileAddress.fullName &&
+      userProfileAddress.address1
+    ) {
       // addresses = [userProfileAddress];
       // addresses = addresses.filter(function (obj) {
       //   delete obj["__typename"];
@@ -438,7 +615,6 @@ class CheckoutActions extends Component {
           region: userProfileAddress.region,
         },
       ];
-
     } else {
       addresses = [
         {
@@ -467,10 +643,6 @@ class CheckoutActions extends Component {
     }
 
     let actions = "";
-    console.log(
-      "process.env.ENABLE_SHIPPING ===> ",
-      process.env.ENABLE_SHIPPING
-    );
     if (process.env.ENABLE_SHIPPING) {
       actions = [
         {
